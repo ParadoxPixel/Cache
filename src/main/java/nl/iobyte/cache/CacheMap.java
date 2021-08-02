@@ -17,7 +17,7 @@ public class CacheMap<T,R> extends AbstractMapBucket<T,R> {
     private final boolean update;
 
     private final Map<T, Long> timeMap = new ConcurrentHashMap<>();
-    private final AtomicBoolean mapAlive = new AtomicBoolean(false);
+    private final AtomicBoolean mapAlive = new AtomicBoolean(true);
 
     public CacheMap(int partitions, IMapPartitionStrategy<T,R> strategy, long expiryInMillis) {
         this(partitions, strategy, expiryInMillis, false);
@@ -44,10 +44,6 @@ public class CacheMap<T,R> extends AbstractMapBucket<T,R> {
      * Start the map and a cleaner thread
      */
     void initialize() {
-        if(mapAlive.get())
-            return;
-
-        mapAlive.set(true);
         new CleanerThread().start();
     }
 
