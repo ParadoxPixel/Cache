@@ -17,7 +17,7 @@ public class CacheMap<T,R> extends AbstractMapBucket<T,R> {
     private final boolean update;
 
     private final Map<T, Long> timeMap = new ConcurrentHashMap<>();
-    private final AtomicBoolean mapAlive = new AtomicBoolean(true);
+    private final AtomicBoolean mapAlive = new AtomicBoolean(false);
 
     public CacheMap(int partitions, IMapPartitionStrategy<T,R> strategy, long expiryInMillis) {
         this(partitions, strategy, expiryInMillis, false);
@@ -41,9 +41,13 @@ public class CacheMap<T,R> extends AbstractMapBucket<T,R> {
     }
 
     /**
-     * Start cleaner thread
+     * Start the map and a cleaner thread
      */
     void initialize() {
+        if(mapAlive.get())
+            return;
+
+        mapAlive.set(true);
         new CleanerThread().start();
     }
 
@@ -110,6 +114,10 @@ public class CacheMap<T,R> extends AbstractMapBucket<T,R> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalStateException if trying to insert values into map after quiting
+     */
     @Override
     @SuppressWarnings("unchecked")
     public R get(Object key) {
